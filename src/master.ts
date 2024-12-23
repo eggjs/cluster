@@ -79,7 +79,7 @@ export class Master extends ReadyEventEmitter {
       this.startByProcess();
     }
 
-    this.log(`[master] =================== ${frameworkPkg.name} start =====================`);
+    this.log(`[master] =================== ${frameworkPkg.name} start 🥚🥚🥚🥚 =====================`);
     this.logger.info(`[master] node version ${process.version}`);
     /* istanbul ignore next */
     if ('alinode' in process) {
@@ -153,7 +153,7 @@ export class Master extends ReadyEventEmitter {
     // get the real port from options and app.config
     // app worker will send after loading
     this.on('realport', ({ port, protocol }) => {
-      this.logger.info('[master] got realport: %s, protocol: %s', port, protocol);
+      // this.logger.info('[master] got realport: %s, protocol: %s', port, protocol);
       if (port) {
         this.#realPort = port;
       }
@@ -455,7 +455,7 @@ export class Master extends ReadyEventEmitter {
     address: ListeningAddress;
   }) {
     const worker = this.workerManager.getWorker(data.workerId)!;
-    this.log('[master] got app_worker#%s:%s app-start event, data: %j', worker.id, worker.workerId, data);
+    // this.log('[master] got app_worker#%s:%s app-start event, data: %j', worker.id, worker.workerId, data);
 
     const address = data.address;
     // worker should listen stickyWorkerPort when sticky mode
@@ -637,14 +637,17 @@ function getAddress({
     return address!;
   }
 
-  let hostname = address;
-  if (!hostname && process.env.HOST && process.env.HOST !== '0.0.0.0') {
-    hostname = process.env.HOST;
+  // {"address":"::","family":"IPv6","port":17001}
+  if (address === '::') {
+    address = '';
   }
-  if (!hostname) {
-    hostname = '127.0.0.1';
+  if (!address && process.env.HOST && process.env.HOST !== '0.0.0.0') {
+    address = process.env.HOST;
   }
-  return `${protocol}://${hostname}:${port}`;
+  if (!address) {
+    address = '127.0.0.1';
+  }
+  return `${protocol}://${address}:${port}`;
 }
 
 function isUnixSock(address: ListeningAddress) {

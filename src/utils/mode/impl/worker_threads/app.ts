@@ -46,6 +46,12 @@ export class AppThreadWorker extends BaseAppWorker<ThreadWorker> {
     this.instance.removeAllListeners();
   }
 
+  // static methods use on src/app_worker.ts
+
+  static get workerId() {
+    return threadId;
+  }
+
   static on(event: string, listener: (...args: any[]) => void) {
     parentPort!.on(event, listener);
   }
@@ -108,29 +114,6 @@ export class AppThreadUtils extends BaseAppUtils {
         },
       });
     }
-
-    // handle worker listening
-    worker.on('message', ({ action, data: address }) => {
-      if (action !== 'listening') {
-        return;
-      }
-
-      if (!address) {
-        return;
-      }
-
-      appWorker.state = 'listening';
-      this.messenger.send({
-        action: 'app-start',
-        data: {
-          workerId: appWorker.workerId,
-          address,
-        },
-        to: 'master',
-        from: 'app',
-      });
-
-    });
 
     // handle worker exit
     worker.on('exit', async code => {

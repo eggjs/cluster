@@ -41,7 +41,7 @@ async function main() {
     level: process.env.EGG_APP_WORKER_LOGGER_LEVEL,
   });
   const { Application } = await importModule(options.framework);
-  debug('new Application with options %j', options);
+  debug('[app_worker:%s] new Application with options %j', process.pid, options);
   let app: any;
   try {
     app = new Application(options);
@@ -138,7 +138,8 @@ async function main() {
         server.listen(listenConfig.path);
       } else {
         if (typeof port !== 'number') {
-          consoleLogger.error('[app_worker] port should be number, but got %s(%s)', port, typeof port);
+          consoleLogger.error('[app_worker:%s] port should be number, but got %s(%s)',
+            process.pid, port, typeof port);
           exitProcess();
           return;
         }
@@ -155,10 +156,17 @@ async function main() {
       }
     }
 
-    AppWorker.send({
-      to: 'master',
-      action: 'listening',
-      data: server.address() || { port },
+    server.once('listening', () => {
+      const address = server.address() || { port };
+      debug('[app_worker:%s] listening at %j', process.pid, address);
+      AppWorker.send({
+        to: 'master',
+        action: 'app-start',
+        data: {
+          address,
+          workerId: AppWorker.workerId,
+        },
+      });
     });
   }
 

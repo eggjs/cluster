@@ -153,6 +153,7 @@ export class Master extends ReadyEventEmitter {
     // get the real port from options and app.config
     // app worker will send after loading
     this.on('realport', ({ port, protocol }) => {
+      this.logger.info('[master] got realport: %s, protocol: %s', port, protocol);
       if (port) {
         this.#realPort = port;
       }
@@ -453,8 +454,10 @@ export class Master extends ReadyEventEmitter {
     workerId: number;
     address: ListeningAddress;
   }) {
-    const address = data.address;
+    const worker = this.workerManager.getWorker(data.workerId)!;
+    this.log('[master] got app_worker#%s:%s app-start event, data: %j', worker.id, worker.workerId, data);
 
+    const address = data.address;
     // worker should listen stickyWorkerPort when sticky mode
     if (this.options.sticky) {
       if (String(address.port) !== String(this.options.stickyWorkerPort)) {
@@ -466,6 +469,7 @@ export class Master extends ReadyEventEmitter {
       (String(address.port) !== String(this.#realPort))) {
       return;
     }
+    worker.state = 'listening';
 
     // send message to agent with alive workers
     this.messenger.send({
@@ -473,10 +477,16 @@ export class Master extends ReadyEventEmitter {
       to: 'agent',
       data: this.workerManager.getListeningWorkerIds(),
     });
+    // send message to app with current agent worker id
+    this.messenger.send({
+      action: 'egg-pids',
+      to: 'app',
+      data: [ this.agentWorker.instance.workerId ],
+      receiverWorkerId: String(worker.workerId),
+      receiverPid: String(worker.workerId),
+    });
 
     this.appWorker.startSuccessCount++;
-
-    const worker = this.workerManager.getWorker(data.workerId)!;
     const remain = this.appWorker.isAllWorkerStarted ? 0 : this.options.workers - this.appWorker.startSuccessCount;
     this.log('[master] app_worker#%s:%s started at %s, remain %s (%sms)',
       worker.id, worker.workerId, address.port, remain,

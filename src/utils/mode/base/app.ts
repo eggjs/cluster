@@ -52,6 +52,12 @@ export abstract class BaseAppWorker<T = ThreadWorker | ClusterProcessWorker> {
     throw new Error('BaseAppWorker should implement clean.');
   }
 
+  // static methods use on src/app_worker.ts
+
+  static get workerId(): number {
+    throw new Error('BaseAppWorker should implement workerId.');
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static on(..._args: any[]) {
     throw new Error('BaseAppWorker should implement on.');

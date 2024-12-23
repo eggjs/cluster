@@ -161,6 +161,7 @@ export class Messenger {
    * @param {Object} data message body
    */
   sendToMaster(data: MessageBody) {
+    // e.g: master.on('app-start', data => {})
     this.#master.emit(data.action, data.data);
   }
 

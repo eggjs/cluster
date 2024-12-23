@@ -31,6 +31,12 @@ export class AppProcessWorker extends BaseAppWorker<ClusterProcessWorker> {
     this.instance.removeAllListeners();
   }
 
+  // static methods use on src/app_worker.ts
+
+  static get workerId() {
+    return process.pid;
+  }
+
   static on(event: string, listener: (...args: any[]) => void) {
     process.on(event, listener);
   }
@@ -121,21 +127,6 @@ export class AppProcessUtils extends BaseAppUtils {
         from: 'app',
       });
     });
-    cluster.on('listening', (worker, address) => {
-      const appWorker = new AppProcessWorker(worker);
-      appWorker.state = 'listening';
-      this.log('[master] app_worker#%s:%s listening at %j', appWorker.id, appWorker.workerId, address);
-      this.messenger.send({
-        action: 'app-start',
-        data: {
-          workerId: appWorker.workerId,
-          address,
-        },
-        to: 'master',
-        from: 'app',
-      });
-    });
-
     return this;
   }
 

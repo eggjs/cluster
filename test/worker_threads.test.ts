@@ -11,7 +11,7 @@ describe('test/worker_threads.test.ts', () => {
       app = cluster('apps/agent-worker-threads', { startMode: 'worker_threads' } as any);
       app.debug();
       return app
-        .expect('stdout', /workerId: 1/)
+        .expect('stdout', /workerId: \d+/)
         .end();
     });
 

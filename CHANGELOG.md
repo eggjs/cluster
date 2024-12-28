@@ -1,5 +1,49 @@
 # Changelog
 
+## [3.0.0](https://github.com/eggjs/cluster/compare/v2.4.0...v3.0.0) (2024-12-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop Node.js < 18.19.0 support
+
+part of https://github.com/eggjs/egg/issues/3644
+
+<!-- This is an auto-generated comment: release notes by coderabbit.ai
+-->
+## Summary by CodeRabbit
+
+## Release Notes for @eggjs/cluster v3.0.0-beta.4
+
+- **New Features**
+  - Migrated project to TypeScript.
+  - Added support for Node.js 18.19.0, 20, 22, and 23.
+  - Enhanced type safety and module exports.
+  - Improved worker thread and process management.
+  - Introduced new error handling classes for better debugging.
+
+- **Breaking Changes**
+  - Renamed package from `egg-cluster` to `@eggjs/cluster`.
+  - Updated import/export syntax to ES modules.
+  - Minimum Node.js version is now 18.19.0.
+
+- **Performance Improvements**
+  - Refactored cluster and worker management.
+  - Optimized error handling and logging.
+
+- **Bug Fixes**
+  - Resolved various edge cases in worker initialization.
+  - Improved graceful shutdown mechanisms.
+
+- **Documentation**
+  - Updated README with new package name and usage examples.
+  - Added TypeScript and ESM import examples.
+<!-- end of auto-generated comment: release notes by coderabbit.ai -->
+
+### Features
+
+* support cjs and esm both by tshy ([#117](https://github.com/eggjs/cluster/issues/117)) ([e15a4bf](https://github.com/eggjs/cluster/commit/e15a4bf45682609f9362eef485e9fc87d916d2a0))
+
 ## [2.4.0](https://github.com/eggjs/egg-cluster/compare/v2.3.0...v2.4.0) (2024-12-09)
 
 

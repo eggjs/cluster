@@ -62,7 +62,7 @@ describe('test/agent_worker.test.ts', () => {
         action: 'kill-agent',
       });
 
-      await scheduler.wait(20000);
+      await scheduler.wait(5000);
 
       app.expect('stderr', /\[master\] agent_worker#1:\d+ died/);
       app.expect('stdout', /\[master\] try to start a new agent_worker after 1s .../);

@@ -17,7 +17,7 @@ async function main() {
     framework: string;
     require?: string[];
     startMode?: 'process' | 'worker_threads';
-    port?: number;
+    port: number;
     debugPort?: number;
     https?: object;
     sticky?: boolean;
@@ -79,9 +79,11 @@ async function main() {
       ...clusterConfig.https,
       ...options.https,
     };
-    const port = options.port = options.port ?? listenConfig.port;
+    const port = app.options.port = options.port || listenConfig.port;
     const debugPort = options.debugPort;
     const protocol = (httpsOptions.key && httpsOptions.cert) ? 'https' : 'http';
+    debug('[app_worker:%s] listenConfig: %j, real port: %o, protocol: %o, debugPort: %o',
+      process.pid, listenConfig, port, protocol, debugPort);
 
     AppWorker.send({
       to: 'master',
@@ -122,6 +124,7 @@ async function main() {
     app.emit('server', server);
 
     if (options.sticky && options.stickyWorkerPort) {
+      // only allow connection from localhost
       server.listen(options.stickyWorkerPort, '127.0.0.1');
       // Listen to messages was sent from the master. Ignore everything else.
       AppWorker.on('message', (message: string, connection: Socket) => {
@@ -157,7 +160,15 @@ async function main() {
     }
 
     server.once('listening', () => {
-      const address = server.address() || { port };
+      let address: any = server.address() || { port };
+      if (typeof address === 'string') {
+        // https://nodejs.org/api/cluster.html#cluster_event_listening_1
+        // Unix domain socket
+        address = {
+          address,
+          addressType: -1,
+        };
+      }
       debug('[app_worker:%s] listening at %j', process.pid, address);
       AppWorker.send({
         to: 'master',

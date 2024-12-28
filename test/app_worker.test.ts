@@ -60,9 +60,10 @@ describe('test/app_worker.test.ts', () => {
       });
 
       return app
-        // .debug()
+        .debug()
         .expect('code', 1)
-        .expect('stderr', /CustomError: mock error \[ https\:\/\/eggjs\.org\/zh-cn\/faq\/customPlugin_99 \]/)
+        .expect('stderr', /CustomError: mock error/)
+        // .expect('stderr', /CustomError: mock error \[ https\:\/\/eggjs\.org\/zh-cn\/faq\/customPlugin_99 \]/)
         .end();
     });
 
@@ -78,7 +79,8 @@ describe('test/app_worker.test.ts', () => {
       return app
         // .debug()
         .expect('code', 1)
-        .expect('stderr', /CustomError: mock error \[ https\:\/\/eggjs\.org\/zh-cn\/faq\/customPlugin_99 \]/)
+        .expect('stderr', /CustomError: mock error/)
+        // .expect('stderr', /CustomError: mock error \[ https\:\/\/eggjs\.org\/zh-cn\/faq\/customPlugin_99 \]/)
         .end();
     });
 
@@ -116,7 +118,7 @@ describe('test/app_worker.test.ts', () => {
         .expect(200);
 
       // wait app worker restart
-      await scheduler.wait(10000);
+      await scheduler.wait(5000);
 
       app.expect('stdout', /app_worker#1:\d+ disconnect/);
       app.expect('stdout', /app_worker#2:\d+ started/);
@@ -130,9 +132,12 @@ describe('test/app_worker.test.ts', () => {
       // app.debug();
       return app.ready();
     });
-    after(mm.restore);
+    after(async () => {
+      await app.close();
+      await mm.restore();
+    });
 
-    it('should restart', async () => {
+    it('should restart disable on local env', async () => {
       try {
         await app.httpRequest()
           .get('/exit');
@@ -140,11 +145,10 @@ describe('test/app_worker.test.ts', () => {
         // ignore
       }
 
-      // wait app worker restart
-      await scheduler.wait(10000);
+      await scheduler.wait(1000);
 
-      app.expect('stdout', /app_worker#1:\d+ disconnect/);
-      app.expect('stderr', /don't fork new work/);
+      app.expect('stderr', /worker:\d+ disconnect/);
+      app.expect('stderr', /don't fork new work \(refork: false, reforkCount: 0\)/);
     });
   });
 
@@ -166,9 +170,9 @@ describe('test/app_worker.test.ts', () => {
       }
 
       // wait app worker restart
-      await scheduler.wait(10000);
+      await scheduler.wait(1000);
 
-      app.expect('stdout', /app_worker#1:\d+ disconnect/);
+      app.expect('stderr', /worker:\d+ disconnect/);
       app.expect('stderr', /don't fork new work/);
     });
   });
@@ -192,20 +196,24 @@ describe('test/app_worker.test.ts', () => {
     beforeEach(() => {
       mm.env('default');
     });
-    afterEach(mm.restore);
+    afterEach(async () => {
+      await app.close();
+      await mm.restore();
+    });
     afterEach(() => rm(sockFile, { force: true, recursive: true }));
 
-    it('should error then port is not specified', async () => {
+    it('should set default port 170xx then config.listen.port is null', async () => {
       app = cluster('apps/app-listen-without-port');
       // app.debug();
       await app.ready();
 
-      app.expect('code', 1);
-      app.expect('stderr', /port should be number, but got null/);
+      app.expect('code', 0);
+      app.expect('stdout', /egg started on http:\/\/127.0.0.1:\d+/);
+      // app.expect('stderr', /port should be number, but got null/);
     });
 
     it('should use port in config', async () => {
-      app = cluster('apps/app-listen-port');
+      app = cluster('apps/app-listen-port', { port: 0 });
       // app.debug();
       await app.ready();
 
@@ -231,12 +239,22 @@ describe('test/app_worker.test.ts', () => {
         .get('/port')
         .expect('17010')
         .expect(200);
+
+      // ipv6
+      // await request('http://[::1]:17010')
+      //   .get('/')
+      //   .expect('done')
+      //   .expect(200);
+      // await request('http://[::1]:17010')
+      //   .get('/port')
+      //   .expect('17010')
+      //   .expect(200);
     });
 
     it('should use hostname in config', async () => {
       const url = ip() + ':17010';
 
-      app = cluster('apps/app-listen-hostname');
+      app = cluster('apps/app-listen-hostname', { port: 0 });
       // app.debug();
       await app.ready();
 

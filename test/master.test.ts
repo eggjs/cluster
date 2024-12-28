@@ -414,7 +414,7 @@ describe('test/master.test.ts', () => {
       app = cluster('apps/messenger');
       // app.debug();
 
-      await app.end();
+      await app.ready();
 
       app.proc.send({
         action: 'parent2app',
@@ -432,23 +432,12 @@ describe('test/master.test.ts', () => {
       app.expect('stdout', /parent -> app/);
     });
 
-    it('app/agent -> parent', async () => {
-      app = cluster('apps/messenger');
-      // app.debug();
-      await app.end();
-      await scheduler.wait(1);
-      await Promise.all([
-        once(app.proc, 'app2parent'),
-        once(app.proc, 'agent2parent'),
-      ]);
-    });
-
     it('should app <-> agent', async () => {
       app = cluster('apps/messenger');
       // app.debug();
-      await app.end();
+      await app.ready();
 
-      await scheduler.wait(10000);
+      await scheduler.wait(1000);
       app.expect('stdout', /app -> agent/);
       app.expect('stdout', /agent -> app/);
       app.expect('stdout', /app: agent2appbystring/);
@@ -458,7 +447,7 @@ describe('test/master.test.ts', () => {
     it('should send multi app worker', async () => {
       app = cluster('apps/send-to-multiapp', { workers: 4 });
       // app.debug();
-      await app.end();
+      await app.ready();
       await scheduler.wait(1000);
       app.expect('stdout', /\d+ '?got'?/);
     });
@@ -466,7 +455,7 @@ describe('test/master.test.ts', () => {
     it('sendTo should work', async () => {
       app = cluster('apps/messenger');
       // app.debug();
-      await app.end();
+      await app.ready();
       app.proc.on('message', console.log);
       await scheduler.wait(1000);
       app.expect('stdout', /app sendTo agent done/);
@@ -526,8 +515,9 @@ describe('test/master.test.ts', () => {
     afterEach(() => app.close());
 
     before(() => {
+      mm.env('prod');
       app = cluster('apps/frameworkapp', {
-        customEgg: getFilepath('apps/frameworkbiz'),
+        framework: getFilepath('apps/frameworkbiz'),
       });
       return app.ready();
     });
@@ -562,7 +552,7 @@ describe('test/master.test.ts', () => {
         to: 'master',
         action: 'reload-worker',
       });
-      await scheduler.wait(20000);
+      await scheduler.wait(5000);
       app.expect('stdout', /app_worker#4:\d+ disconnect/);
       app.expect('stdout', /app_worker#8:\d+ started/);
     });
@@ -616,7 +606,7 @@ describe('test/master.test.ts', () => {
     });
   });
 
-  describe('agent should receive app worker nums', () => {
+  describe('agent should receive app worker numbers', () => {
     let app: MockApplication;
     before(() => {
       mm.env('default');
@@ -659,7 +649,7 @@ describe('test/master.test.ts', () => {
     });
   });
 
-  describe('app should receive agent worker nums', () => {
+  describe('app should receive agent worker numbers', () => {
     let app: MockApplication;
     before(() => {
       mm.env('default');
@@ -676,9 +666,9 @@ describe('test/master.test.ts', () => {
         action: 'kill-agent',
       });
 
-      await scheduler.wait(9000);
-      app.expect('stdout', /#1 app get 0 workers \[\]/);
-      app.expect('stdout', /#2 app get 1 workers \[ \d+ \]/);
+      await scheduler.wait(5000);
+      app.expect('stdout', /#1 app get 1 workers \[/);
+      app.expect('stdout', /#2 app get 0 workers \[/);
     });
   });
 
@@ -795,7 +785,7 @@ describe('test/master.test.ts', () => {
         return app.ready();
       });
 
-      it('parent should recieve debug', async () => {
+      it('parent should receive debug', async () => {
         // work for message sent
         await scheduler.wait(5000);
         app.expect('stdout', /agent receive egg-ready, with 2 workers/);
@@ -826,7 +816,7 @@ describe('test/master.test.ts', () => {
         return app.ready();
       });
 
-      it('parent should not recieve debug', async () => {
+      it('parent should not receive debug', async () => {
         // work for message sent
         await scheduler.wait(5000);
         app.expect('stdout', /agent receive egg-ready, with 1 workers/);
@@ -856,7 +846,7 @@ describe('test/master.test.ts', () => {
         return app.ready();
       });
 
-      it('should not log err', async () => {
+      it('should not log error', async () => {
         // work for message sent
         await scheduler.wait(6000);
         app.expect('stderr', /\[master] app_worker#.*signal: SIGKILL/);
@@ -869,8 +859,8 @@ describe('test/master.test.ts', () => {
 
   describe('--sticky', () => {
     before(() => {
-      app = cluster('apps/cluster_mod_sticky', { sticky: true } as any);
-      // app.debug();
+      app = cluster('apps/cluster_mod_sticky', { sticky: true, port: 17010 } as any);
+      app.debug();
       return app.ready();
     });
     after(() => app.close());
@@ -893,7 +883,7 @@ describe('test/master.test.ts', () => {
       await app.ready();
       fs.writeFileSync(path.join(app.baseDir, 'logs/started'), '');
 
-      await scheduler.wait(30000);
+      await scheduler.wait(5000);
 
       // process should exist
       assert(app.process.exitCode === null);

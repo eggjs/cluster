@@ -4,6 +4,6 @@ module.exports = app => {
   });
 
   app.get('/port', ctx => {
-    ctx.body = ctx.app._options.port;
+    ctx.body = ctx.app.options.port;
   });
 };

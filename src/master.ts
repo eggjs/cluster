@@ -4,6 +4,7 @@ import util from 'node:util';
 import path from 'node:path';
 import fs from 'node:fs';
 import net from 'node:net';
+import { debuglog } from 'node:util';
 import { ReadyEventEmitter } from 'get-ready';
 import { detectPort } from 'detect-port';
 import { reload } from 'cluster-reload';
@@ -22,6 +23,8 @@ import {
 } from './utils/mode/impl/worker_threads/agent.js';
 import { AppThreadWorker, AppThreadUtils as WorkerThreadsAppWorker } from './utils/mode/impl/worker_threads/app.js';
 import { ClusterWorkerExceptionError } from './error/ClusterWorkerExceptionError.js';
+
+const debug = debuglog('@eggjs/cluster/master');
 
 export interface MasterOptions extends ParsedClusterOptions {
   clusterPort?: number;
@@ -455,7 +458,7 @@ export class Master extends ReadyEventEmitter {
     address: ListeningAddress;
   }) {
     const worker = this.workerManager.getWorker(data.workerId)!;
-    // this.log('[master] got app_worker#%s:%s app-start event, data: %j', worker.id, worker.workerId, data);
+    debug('got app_worker#%s:%s app-start event, data: %j', worker.id, worker.workerId, data);
 
     const address = data.address;
     // worker should listen stickyWorkerPort when sticky mode

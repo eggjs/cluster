@@ -15,6 +15,7 @@ export function cluster(baseDir: string, options: MockClusterOptions = {}) {
       // clear execArgv from egg-bin
       execArgv: [],
     },
+    // override @eggjs/mock default port 17001
     ...options,
   });
 }

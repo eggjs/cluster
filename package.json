@@ -5,14 +5,13 @@
     "access": "public"
   },
   "description": "cluster manager for egg",
-  "main": "./dist/commonjs/index.js",
   "scripts": {
     "lint": "eslint --cache src test --ext .ts",
     "pretest": "npm run lint -- --fix && npm run prepublishOnly",
     "test": "egg-bin test",
     "preci": "npm run lint && npm run prepublishOnly",
-    "ci": "egg-bin cov && attw --pack",
-    "prepublishOnly": "tshy && tshy-after"
+    "ci": "egg-bin cov",
+    "prepublishOnly": "tshy && tshy-after && attw --pack"
   },
   "files": [
     "dist",
@@ -90,5 +89,6 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/commonjs/index.d.ts",
+  "main": "./dist/commonjs/index.js",
   "module": "./dist/esm/index.js"
 }

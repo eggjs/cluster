@@ -1,19 +1,20 @@
-const assert = require('assert');
-const { rm } = require('fs/promises');
-const mm = require('egg-mock');
-const request = require('supertest');
-const urllib = require('urllib');
-const address = require('address');
-const utils = require('./utils');
-const { sleep } = require('../lib/utils/timer');
+import { strict as assert } from 'node:assert';
+import { rm } from 'node:fs/promises';
+import { scheduler } from 'node:timers/promises';
+import { mm, MockApplication } from '@eggjs/mock';
+import { request } from '@eggjs/supertest';
+import urllib from 'urllib';
+import { ip } from 'address';
+import { cluster, getFilepath } from './utils.js';
 
-describe('test/app_worker.test.js', () => {
-  let app;
+describe('test/app_worker.test.ts', () => {
+  let app: MockApplication;
   afterEach(() => app && app.close());
+  afterEach(mm.restore);
 
   describe('app worker', () => {
     before(() => {
-      app = utils.cluster('apps/app-server');
+      app = cluster('apps/app-server');
       return app.ready();
     });
     it('should emit `server`', () => {
@@ -25,7 +26,7 @@ describe('test/app_worker.test.js', () => {
 
   describe('app worker error', () => {
     it('should exit when app worker error during boot', () => {
-      app = utils.cluster('apps/worker-die');
+      app = cluster('apps/worker-die');
 
       return app
         // .debug()
@@ -34,7 +35,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should exit when emit error during app worker boot', () => {
-      app = utils.cluster('apps/app-start-error', {
+      app = cluster('apps/app-start-error', {
         opt: {
           env: Object.assign({}, process.env, {
             EGG_APP_WORKER_LOGGER_LEVEL: 'INFO',
@@ -50,7 +51,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should FrameworkErrorformater work during app boot', () => {
-      app = utils.cluster('apps/app-start-framework-error', {
+      app = cluster('apps/app-start-framework-error', {
         opt: {
           env: Object.assign({}, process.env, {
             EGG_APP_WORKER_LOGGER_LEVEL: 'INFO',
@@ -66,7 +67,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should FrameworkErrorformater work during app boot ready', () => {
-      app = utils.cluster('apps/app-start-framework-ready-error', {
+      app = cluster('apps/app-start-framework-ready-error', {
         opt: {
           env: Object.assign({}, process.env, {
             EGG_APP_WORKER_LOGGER_LEVEL: 'INFO',
@@ -82,7 +83,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should remove error listener after ready', async () => {
-      app = utils.cluster('apps/app-error-listeners');
+      app = cluster('apps/app-error-listeners');
       await app.ready();
       await app.httpRequest()
         .get('/')
@@ -94,7 +95,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should ignore listen to other port', done => {
-      app = utils.cluster('apps/other-port');
+      app = cluster('apps/other-port');
       // app.debug();
       app.notExpect('stdout', /started at 7002/).end(done);
     });
@@ -103,7 +104,7 @@ describe('test/app_worker.test.js', () => {
   describe('app worker error in env === "default"', () => {
     before(() => {
       mm.env('default');
-      app = utils.cluster('apps/app-die');
+      app = cluster('apps/app-die');
       // app.debug();
       return app.ready();
     });
@@ -115,7 +116,7 @@ describe('test/app_worker.test.js', () => {
         .expect(200);
 
       // wait app worker restart
-      await sleep(10000);
+      await scheduler.wait(10000);
 
       app.expect('stdout', /app_worker#1:\d+ disconnect/);
       app.expect('stdout', /app_worker#2:\d+ started/);
@@ -125,7 +126,7 @@ describe('test/app_worker.test.js', () => {
   describe('app worker error when env === "local"', () => {
     before(() => {
       mm.env('local');
-      app = utils.cluster('apps/app-die');
+      app = cluster('apps/app-die');
       // app.debug();
       return app.ready();
     });
@@ -140,7 +141,7 @@ describe('test/app_worker.test.js', () => {
       }
 
       // wait app worker restart
-      await sleep(10000);
+      await scheduler.wait(10000);
 
       app.expect('stdout', /app_worker#1:\d+ disconnect/);
       app.expect('stderr', /don't fork new work/);
@@ -150,7 +151,7 @@ describe('test/app_worker.test.js', () => {
   describe('app worker kill when env === "local"', () => {
     before(() => {
       mm.env('local');
-      app = utils.cluster('apps/app-kill');
+      app = cluster('apps/app-kill');
       // app.debug();
       return app.ready();
     });
@@ -165,7 +166,7 @@ describe('test/app_worker.test.js', () => {
       }
 
       // wait app worker restart
-      await sleep(10000);
+      await scheduler.wait(10000);
 
       app.expect('stdout', /app_worker#1:\d+ disconnect/);
       app.expect('stderr', /don't fork new work/);
@@ -174,7 +175,7 @@ describe('test/app_worker.test.js', () => {
 
   describe('app start timeout', () => {
     it('should exit', () => {
-      app = utils.cluster('apps/app-start-timeout');
+      app = cluster('apps/app-start-timeout');
       return app
         // .debug()
         .expect('code', 1)
@@ -187,7 +188,7 @@ describe('test/app_worker.test.js', () => {
   });
 
   describe('listen config', () => {
-    const sockFile = utils.getFilepath('apps/app-listen-path/my.sock');
+    const sockFile = getFilepath('apps/app-listen-path/my.sock');
     beforeEach(() => {
       mm.env('default');
     });
@@ -195,7 +196,7 @@ describe('test/app_worker.test.js', () => {
     afterEach(() => rm(sockFile, { force: true, recursive: true }));
 
     it('should error then port is not specified', async () => {
-      app = utils.cluster('apps/app-listen-without-port');
+      app = cluster('apps/app-listen-without-port');
       // app.debug();
       await app.ready();
 
@@ -204,7 +205,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should use port in config', async () => {
-      app = utils.cluster('apps/app-listen-port');
+      app = cluster('apps/app-listen-port');
       // app.debug();
       await app.ready();
 
@@ -233,9 +234,9 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should use hostname in config', async () => {
-      const url = address.ip() + ':17010';
+      const url = ip() + ':17010';
 
-      app = utils.cluster('apps/app-listen-hostname');
+      app = cluster('apps/app-listen-hostname');
       // app.debug();
       await app.ready();
 
@@ -252,13 +253,13 @@ describe('test/app_worker.test.js', () => {
         assert(response.status === 200);
         assert(response.data === 'done');
         throw new Error('should not run');
-      } catch (err) {
+      } catch (err: any) {
         assert(/ECONNREFUSED/.test(err.message));
       }
     });
 
     it('should use path in config', async () => {
-      app = utils.cluster('apps/app-listen-path');
+      app = cluster('apps/app-listen-path');
       // app.debug();
       await app.ready();
 
@@ -276,13 +277,13 @@ describe('test/app_worker.test.js', () => {
   it('should exit when EADDRINUSE', async () => {
     mm.env('default');
 
-    app = utils.cluster('apps/app-server', { port: 17001 });
+    app = cluster('apps/app-server', { port: 17001 });
     // app.debug();
     await app.ready();
 
     let app2;
     try {
-      app2 = utils.cluster('apps/app-server', { port: 17001 });
+      app2 = cluster('apps/app-server', { port: 17001 });
       app2.debug();
       await app2.ready();
 
@@ -300,7 +301,7 @@ describe('test/app_worker.test.js', () => {
     });
 
     it('should refork when app_worker exit', async () => {
-      app = utils.cluster('apps/app-die');
+      app = cluster('apps/app-die');
       // app.debug();
       await app.ready();
 
@@ -308,7 +309,7 @@ describe('test/app_worker.test.js', () => {
         .get('/exit')
         .expect(200);
 
-      await sleep(10000);
+      await scheduler.wait(10000);
 
       app.expect('stdout', /app_worker#1:\d+ started at \d+/);
       app.expect('stderr', /new worker:\d+ fork/);
@@ -319,13 +320,13 @@ describe('test/app_worker.test.js', () => {
         .get('/exit')
         .expect(200);
 
-      await sleep(10000);
+      await scheduler.wait(10000);
 
       app.expect('stdout', /app_worker#3:\d+ started at \d+/);
     });
 
     it('should not refork when starting', async () => {
-      app = utils.cluster('apps/app-start-error');
+      app = cluster('apps/app-start-error');
       // app.debug();
       await app.ready();
 

@@ -1,15 +1,14 @@
-'use strict';
+import { MockApplication } from '@eggjs/mock';
+import { cluster } from './utils.js';
 
-const utils = require('./utils');
-
-describe('worker_threads', () => {
-  let app;
+describe('test/worker_threads.test.ts', () => {
+  let app: MockApplication;
 
   describe('Fork Agent', () => {
     afterEach(() => app && app.close());
 
     it('support config agent debug port', async () => {
-      app = utils.cluster('apps/agent-worker-threads', { startMode: 'worker_threads' });
+      app = cluster('apps/agent-worker-threads', { startMode: 'worker_threads' } as any);
       app.debug();
       return app
         .expect('stdout', /workerId: 1/)
@@ -17,7 +16,7 @@ describe('worker_threads', () => {
     });
 
     it('should exit when emit error during agent worker boot', () => {
-      app = utils.cluster('apps/agent-worker-threads-error');
+      app = cluster('apps/agent-worker-threads-error');
       app.debug();
       return app
         .debug()

@@ -2,7 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { strict as assert } from 'node:assert';
 import os from 'node:os';
-import { mm } from 'egg-mock';
+import { mm } from '@eggjs/mock';
 import { importResolve } from '@eggjs/utils';
 import { parseOptions } from '../src/utils/options.js';
 import { getFilepath, cluster } from './utils.js';

@@ -1,34 +1,37 @@
-const assert = require('assert');
-const path = require('path');
-const coffee = require('coffee');
-const mm = require('egg-mock');
-const { readFile } = require('fs/promises');
-const { sleep } = require('../lib/utils/timer');
-const utils = require('./utils');
+import { strict as assert } from 'node:assert';
+import { readFile } from 'node:fs/promises';
+import { scheduler } from 'node:timers/promises';
+import coffee from 'coffee';
+import { mm, MockApplication } from '@eggjs/mock';
+import { cluster, getFilepath } from './utils.js';
 
-describe('test/agent_worker.test.js', () => {
-  let app;
+describe('test/agent_worker.test.ts', () => {
+  let app: MockApplication;
+
+  afterEach(mm.restore);
 
   describe('Fork Agent', () => {
     afterEach(() => app && app.close());
 
     it('support config agent debug port', () => {
       mm(process.env, 'EGG_AGENT_DEBUG_PORT', '15800');
-      app = utils.cluster('apps/agent-debug-port', { isDebug: true });
+      app = cluster('apps/agent-debug-port', { isDebug: true } as any);
       return app
-        .expect('stdout', /15800/)
+        // .debug()
+        .expect('stdout', /=15800/)
         .end();
     });
 
     it('agent debug port default 5800', () => {
-      app = utils.cluster('apps/agent-debug-port', { isDebug: true });
+      app = cluster('apps/agent-debug-port', { isDebug: true } as any);
       return app
-        .expect('stdout', /5800/)
+        // .debug()
+        .expect('stdout', /=5800/)
         .end();
     });
 
     it('should exist when error happened during boot', () => {
-      app = utils.cluster('apps/agent-die-onboot');
+      app = cluster('apps/agent-die-onboot');
       return app
         // .debug()
         .expect('code', 1)
@@ -38,7 +41,7 @@ describe('test/agent_worker.test.js', () => {
     });
 
     it('should not start app when error happened during agent starting', () => {
-      app = utils.cluster('apps/agent-die-onboot');
+      app = cluster('apps/agent-die-onboot');
       return app
         .expect('code', 1)
         .expect('stderr', /\[master\] agent_worker#1:\d+ start fail, exiting with code:1/)
@@ -48,7 +51,7 @@ describe('test/agent_worker.test.js', () => {
     });
 
     it('should refork new agent_worker after app started', async () => {
-      app = utils.cluster('apps/agent-die');
+      app = cluster('apps/agent-die');
       await app
         // .debug()
         .expect('stdout', /\[master\] egg started on http:\/\/127.0.0.1:\d+/)
@@ -59,7 +62,7 @@ describe('test/agent_worker.test.js', () => {
         action: 'kill-agent',
       });
 
-      await sleep(20000);
+      await scheduler.wait(20000);
 
       app.expect('stderr', /\[master\] agent_worker#1:\d+ died/);
       app.expect('stdout', /\[master\] try to start a new agent_worker after 1s .../);
@@ -68,7 +71,7 @@ describe('test/agent_worker.test.js', () => {
     });
 
     it('should exit agent_worker when master die in accident', async () => {
-      app = utils.cluster('apps/agent-die');
+      app = cluster('apps/agent-die');
       await app
         // .debug()
         .expect('stdout', /\[master\] egg started on http:\/\/127.0.0.1:\d+/)
@@ -76,14 +79,14 @@ describe('test/agent_worker.test.js', () => {
 
       // kill -9 master
       app.process.kill('SIGKILL');
-      await sleep(5000);
+      await scheduler.wait(5000);
       app.expect('stderr', /\[app_worker\] receive disconnect event in cluster fork mode, exitedAfterDisconnect:false/)
         .expect('stderr', /\[agent_worker\] receive disconnect event on child_process fork mode, exiting with code:110/)
         .expect('stderr', /\[agent_worker\] exit with code:110/);
     });
 
     it('should master exit when agent exit during app worker boot', () => {
-      app = utils.cluster('apps/agent-die-on-forkapp');
+      app = cluster('apps/agent-die-on-forkapp');
 
       return app
         // .debug()
@@ -97,7 +100,7 @@ describe('test/agent_worker.test.js', () => {
     });
 
     it('should exit when emit error during agent worker boot', () => {
-      app = utils.cluster('apps/agent-start-error');
+      app = cluster('apps/agent-start-error');
       return app
         // .debug()
         .expect('code', 1)
@@ -108,7 +111,7 @@ describe('test/agent_worker.test.js', () => {
     });
 
     it('should FrameworkErrorformater work during agent boot', () => {
-      app = utils.cluster('apps/agent-start-framework-error');
+      app = cluster('apps/agent-start-framework-error');
       return app
         // .debug()
         .expect('code', 1)
@@ -117,7 +120,7 @@ describe('test/agent_worker.test.js', () => {
     });
 
     it('should FrameworkErrorformater work during agent boot ready', () => {
-      app = utils.cluster('apps/agent-start-framework-ready-error');
+      app = cluster('apps/agent-start-framework-ready-error');
       return app
         // .debug()
         .expect('code', 1)
@@ -127,11 +130,11 @@ describe('test/agent_worker.test.js', () => {
 
     // process.send is not exist if started by spawn
     it('master should not die if spawn error', async () => {
-      app = coffee.spawn('node', [ utils.getFilepath('apps/agent-die/start.js') ]);
+      app = coffee.spawn('node', [ getFilepath('apps/agent-die/start.js') ]) as any;
       // app.debug();
-      app.close = () => app.proc.kill();
+      app.close = async () => app.proc.kill();
 
-      await sleep(3000);
+      await scheduler.wait(3000);
       app.emit('close', 0);
       app.expect('stderr', /Error: Cannot find module/);
       app.notExpect('stderr', /TypeError: process.send is not a function/);
@@ -140,15 +143,15 @@ describe('test/agent_worker.test.js', () => {
 
   describe('agent custom loggers', () => {
     before(() => {
-      app = utils.cluster('apps/custom-logger');
+      app = cluster('apps/custom-logger');
       return app.ready();
     });
     after(() => app.close());
 
     it('should support custom logger in agent', async () => {
-      await sleep(1500);
+      await scheduler.wait(1500);
       const content = await readFile(
-        path.join(__dirname, 'fixtures/apps/custom-logger/logs/monitor.log'), 'utf8');
+        getFilepath('apps/custom-logger/logs/monitor.log'), 'utf8');
       assert(content === 'hello monitor!\n');
     });
   });

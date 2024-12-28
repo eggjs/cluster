@@ -1,12 +1,11 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mm } from 'egg-mock';
-import type { ClusterOptions } from '../src/index.js';
+import { mm, MockClusterOptions } from '@eggjs/mock';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export function cluster(baseDir: string, options: ClusterOptions) {
+export function cluster(baseDir: string, options: MockClusterOptions = {}) {
   return mm.cluster({
     baseDir,
     framework: path.join(__dirname, 'fixtures/egg'),

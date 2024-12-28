@@ -1,22 +1,25 @@
 {
-  "name": "egg-cluster",
-  "version": "2.4.0",
+  "name": "@eggjs/cluster",
+  "version": "3.0.0-beta.4",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "cluster manager for egg",
-  "main": "index.js",
   "scripts": {
-    "lint": "eslint .",
-    "test": "npm run lint -- --fix && npm run test-local",
-    "test-local": "egg-bin test --ts false",
-    "cov": "egg-bin cov --prerequire --timeout 100000 --ts false",
-    "ci": "npm run lint && npm run cov"
+    "lint": "eslint --cache src test --ext .ts",
+    "pretest": "npm run lint -- --fix && npm run prepublishOnly",
+    "test": "egg-bin test",
+    "preci": "npm run lint && npm run prepublishOnly",
+    "ci": "egg-bin test",
+    "prepublishOnly": "tshy && tshy-after && attw --pack"
   },
   "files": [
-    "index.js",
-    "lib"
+    "dist",
+    "src"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eggjs/egg-cluster.git"
+    "url": "git+https://github.com/eggjs/cluster.git"
   },
   "keywords": [
     "egg",
@@ -26,40 +29,66 @@
   "author": "dead-horse <dead_horse@qq.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eggjs/egg-cluster/issues"
+    "url": "https://github.com/eggjs/cluster/issues"
   },
-  "homepage": "https://github.com/eggjs/egg-cluster#readme",
+  "homepage": "https://github.com/eggjs/cluster#readme",
   "dependencies": {
-    "await-event": "^2.1.0",
-    "cfork": "^1.7.1",
-    "cluster-reload": "^1.0.2",
+    "@eggjs/utils": "^4.1.6",
+    "@fengmk2/ps-tree": "^2.0.1",
+    "cfork": "^2.0.0",
+    "cluster-reload": "^2.0.0",
     "detect-port": "^2.0.1",
-    "egg-logger": "^3.3.0",
-    "egg-utils": "^2.4.1",
-    "get-ready": "^2.0.1",
-    "graceful-process": "^1.2.0",
-    "is-type-of": "^1.2.1",
-    "ps-tree": "^1.2.0",
-    "sendmessage": "^1.1.0",
+    "egg-logger": "^3.6.0",
+    "get-ready": "^3.2.0",
+    "graceful-process": "^2.0.0",
+    "sendmessage": "^3.0.1",
     "terminal-link": "^2.1.1",
-    "utility": "^1.15.0"
+    "utility": "^2.2.0"
   },
   "devDependencies": {
-    "address": "^1.0.3",
-    "coffee": "^5.2.1",
-    "egg": "^3.9.0",
-    "egg-bin": "^6.4.0",
+    "@arethetypeswrong/cli": "^0.17.1",
+    "@eggjs/bin": "^7.0.0",
+    "@eggjs/mock": "beta",
+    "@eggjs/supertest": "^8.1.1",
+    "@eggjs/tsconfig": "1",
+    "@types/mocha": "10",
+    "@types/node": "22",
+    "address": "^2.0.3",
+    "coffee": "^5.5.1",
+    "egg": "beta",
     "egg-errors": "^2.2.0",
-    "egg-mock": "^5.4.0",
-    "eslint": "^8.26.0",
-    "eslint-config-egg": "^12.1.0",
-    "pedding": "^1.1.0",
-    "supertest": "^4.0.0",
+    "eslint": "8",
+    "eslint-config-egg": "14",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4",
-    "urllib": "^3.17.1"
+    "tshy": "3",
+    "tshy-after": "1",
+    "typescript": "5",
+    "urllib": "^4.6.8"
   },
   "engines": {
-    "node": ">= 14.0.0"
-  }
+    "node": ">= 18.19.0"
+  },
+  "type": "module",
+  "tshy": {
+    "exports": {
+      ".": "./src/index.ts",
+      "./package.json": "./package.json"
+    }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/commonjs/index.d.ts",
+  "main": "./dist/commonjs/index.js",
+  "module": "./dist/esm/index.js"
 }

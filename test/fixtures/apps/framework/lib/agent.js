@@ -1,8 +1,5 @@
-'use strict';
-
 const path = require('path');
-const egg = require('egg');
-const Agent = egg.Agent;
+const { Agent } = require('egg');
 
 class FrameworkAgent extends Agent {
   get [Symbol.for('egg#eggPath')]() {

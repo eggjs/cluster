@@ -1,4 +1,4 @@
-const { sleep } = require('../../../../lib/utils/timer');
+const { scheduler } = require('node:timers/promises');
 const utils = require('../../../utils');
 
 (async () => {
@@ -17,5 +17,5 @@ const utils = require('../../../utils');
     });
   });
 
-  await sleep(3000);
+  await scheduler.wait(3000);
 })();

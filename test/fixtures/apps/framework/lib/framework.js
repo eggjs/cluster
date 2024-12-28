@@ -1,14 +1,12 @@
-'use strict';
-
 const path = require('path');
 const egg = require('egg');
 const Application = egg.Application;
 const AppWorkerLoader = egg.AppWorkerLoader;
 
 class Loader extends AppWorkerLoader {
-  loadConfig() {
+  async loadConfig() {
     this.loadServerConf();
-    super.loadConfig();
+    await super.loadConfig();
   }
 
   loadServerConf() {}

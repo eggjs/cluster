@@ -1,4 +1,6 @@
-'use strict';
+/* eslint-disable @typescript-eslint/no-var-requires */
+const egg = require('egg');
 
-module.exports = require('egg');
-module.exports.startCluster = require('../../..').startCluster;
+exports.startCluster = require('../../..').startCluster;
+exports.Application = egg.Application;
+exports.Agent = egg.Agent;

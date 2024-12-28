@@ -10,7 +10,7 @@
     "pretest": "npm run lint -- --fix && npm run prepublishOnly",
     "test": "egg-bin test",
     "preci": "npm run lint && npm run prepublishOnly",
-    "ci": "egg-bin cov",
+    "ci": "egg-bin test",
     "prepublishOnly": "tshy && tshy-after && attw --pack"
   },
   "files": [

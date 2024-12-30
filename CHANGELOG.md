@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/eggjs/cluster/compare/v3.0.0...v3.0.1) (2024-12-30)
+
+
+### Bug Fixes
+
+* require support paths ([#118](https://github.com/eggjs/cluster/issues/118)) ([b74872c](https://github.com/eggjs/cluster/commit/b74872c1625e7a6c3ee58a3cc468fdae43a9b000))
+
 ## [3.0.0](https://github.com/eggjs/cluster/compare/v2.4.0...v3.0.0) (2024-12-28)
 
 

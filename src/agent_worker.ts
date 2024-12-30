@@ -18,14 +18,17 @@ async function main() {
   // $ node agent_worker.js options
   const options = JSON.parse(process.argv[2]) as {
     framework: string;
+    baseDir: string;
     require?: string[];
     startMode?: 'process' | 'worker_threads';
   };
   if (options.require) {
     // inject
-    options.require.forEach(mod => {
-      require(mod);
-    });
+    for (const mod of options.require) {
+      await importModule(mod, {
+        paths: [ options.baseDir ],
+      });
+    }
   }
 
   let AgentWorker: typeof BaseAgentWorker;
@@ -36,7 +39,9 @@ async function main() {
   }
 
   const consoleLogger = new ConsoleLogger({ level: process.env.EGG_AGENT_WORKER_LOGGER_LEVEL });
-  const { Agent } = await importModule(options.framework);
+  const { Agent } = await importModule(options.framework, {
+    paths: [ options.baseDir ],
+  });
   debug('new Agent with options %j', options);
   let agent: any;
   try {

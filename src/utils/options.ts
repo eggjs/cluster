@@ -106,7 +106,9 @@ export async function parseOptions(options?: ClusterOptions) {
     framework: options.framework ?? options.customEgg,
   });
 
-  const egg = await importModule(options.framework);
+  const egg = await importModule(options.framework, {
+    paths: [ options.baseDir! ],
+  });
   assert(egg.Application, `should define Application in ${options.framework}`);
   assert(egg.Agent, `should define Agent in ${options.framework}`);
 

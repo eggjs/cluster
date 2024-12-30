@@ -15,9 +15,10 @@ describe('test/agent_worker.test.ts', () => {
 
     it('support config agent debug port', () => {
       mm(process.env, 'EGG_AGENT_DEBUG_PORT', '15800');
-      app = cluster('apps/agent-debug-port', { isDebug: true } as any);
+      app = cluster('apps/agent-debug-port', { isDebug: true, require: [ './inject1.js' ] } as any);
       return app
         // .debug()
+        .expect('stdout', /@@inject1\.js run/)
         .expect('stdout', /=15800/)
         .end();
     });

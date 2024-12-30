@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/eggjs/cluster#readme",
   "dependencies": {
-    "@eggjs/utils": "^4.1.6",
+    "@eggjs/utils": "^4.2.1",
     "@fengmk2/ps-tree": "^2.0.1",
     "cfork": "^2.0.0",
     "cluster-reload": "^2.0.0",

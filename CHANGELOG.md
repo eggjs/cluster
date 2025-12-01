@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/eggjs/egg-cluster/compare/v2.3.0...v2.4.0) (2024-12-09)
+
+
+### Features
+
+* use detect-port v2 ([#116](https://github.com/eggjs/egg-cluster/issues/116)) ([8480a40](https://github.com/eggjs/egg-cluster/commit/8480a403f6778ae70af7ad2ce7f4bfac5b565828))
+
 ## [2.3.0](https://github.com/eggjs/egg-cluster/compare/v2.2.1...v2.3.0) (2024-06-03)
 
 

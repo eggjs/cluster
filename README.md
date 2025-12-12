@@ -1,7 +1,7 @@
 # egg-cluster
 
 [![NPM version][npm-image]][npm-url]
-[![CI](https://github.com/eggjs/egg-cluster/actions/workflows/nodejs.yml/badge.svg)](https://github.com/eggjs/egg-cluster/actions/workflows/nodejs.yml)
+[![CI](https://github.com/eggjs/cluster/actions/workflows/nodejs.yml/badge.svg)](https://github.com/eggjs/cluster/actions/workflows/nodejs.yml)
 [![Test coverage][codecov-image]][codecov-url]
 [![Known Vulnerabilities][snyk-image]][snyk-url]
 [![npm download][download-image]][download-url]
@@ -73,6 +73,6 @@ EGG_AGENT_CLOSE_TIMEOUT: agent worker boot timeout value
 
 ## Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=eggjs/egg-cluster)](https://github.com/eggjs/egg-cluster/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=eggjs/cluster)](https://github.com/eggjs/cluster/graphs/contributors)
 
 Made with [contributors-img](https://contrib.rocks).

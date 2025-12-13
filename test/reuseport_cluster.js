@@ -8,7 +8,11 @@ const numCPUs = typeof os.availableParallelism === 'function' ? os.availablePara
 // pid: count
 const totals = {};
 function request(index) {
-  http.get('http://localhost:17001/', res => {
+  http.get('http://localhost:17001/', {
+    headers: {
+      connection: 'close',
+    },
+  }, res => {
     const { statusCode } = res;
     console.log(index, res.statusCode, res.headers);
     let error;
@@ -54,7 +58,7 @@ if (cluster.isPrimary) {
   });
 
   setTimeout(() => {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       request(i);
     }
   }, 2000);
@@ -70,7 +74,7 @@ if (cluster.isPrimary) {
     res.end(JSON.stringify({ pid: process.pid }));
   }).listen({
     port: 17001,
-    reusePort: true,
+    reusePort: os.platform() === 'linux' ? true : false,
   });
 
   console.log(`Worker ${process.pid} started`);

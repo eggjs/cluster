@@ -5,6 +5,8 @@ const process = require('node:process');
 
 const numCPUs = typeof os.availableParallelism === 'function' ? os.availableParallelism() : os.cpus().length;
 
+// pid: count
+const totals = {};
 function request(index) {
   http.get('http://localhost:17001/', res => {
     const { statusCode } = res;
@@ -31,6 +33,8 @@ function request(index) {
       } catch (e) {
         console.error(e.message);
       }
+      const data = JSON.parse(rawData);
+      totals[data.pid] = (totals[data.pid] || 0) + 1;
     });
   }).on('error', e => {
     console.error(`Got error: ${e.stack}`);
@@ -50,11 +54,12 @@ if (cluster.isPrimary) {
   });
 
   setTimeout(() => {
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 100; i++) {
       request(i);
     }
   }, 2000);
   setTimeout(() => {
+    console.log(totals);
     process.exit(0);
   }, 5000);
 } else {
@@ -62,7 +67,7 @@ if (cluster.isPrimary) {
   // In this case it is an HTTP server
   http.createServer((req, res) => {
     res.writeHead(200);
-    res.end(`hello world, worker pid: ${process.pid}, port: ${res.socket.localPort}\n`);
+    res.end(JSON.stringify({ pid: process.pid }));
   }).listen({
     port: 17001,
     reusePort: true,

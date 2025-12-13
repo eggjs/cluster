@@ -1,6 +1,6 @@
 {
   "name": "egg-cluster",
-  "version": "2.4.0",
+  "version": "2.5.0-beta.3",
   "description": "cluster manager for egg",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test --ts false",
     "cov": "egg-bin cov --prerequire --timeout 100000 --ts false",
-    "ci": "npm run lint && npm run cov"
+    "ci": "npm run lint && node test/reuseport_cluster.js && npm run cov"
   },
   "files": [
     "index.js",
@@ -16,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eggjs/egg-cluster.git"
+    "url": "git+https://github.com/eggjs/cluster.git"
   },
   "keywords": [
     "egg",
@@ -26,9 +26,9 @@
   "author": "dead-horse <dead_horse@qq.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eggjs/egg-cluster/issues"
+    "url": "https://github.com/eggjs/cluster/issues"
   },
-  "homepage": "https://github.com/eggjs/egg-cluster#readme",
+  "homepage": "https://github.com/eggjs/cluster#readme",
   "dependencies": {
     "await-event": "^2.1.0",
     "cfork": "^1.7.1",

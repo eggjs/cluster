@@ -8,8 +8,8 @@
 
 [npm-image]: https://img.shields.io/npm/v/egg-cluster.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/egg-cluster
-[codecov-image]: https://codecov.io/github/eggjs/egg-cluster/coverage.svg?branch=master
-[codecov-url]: https://codecov.io/github/eggjs/egg-cluster?branch=master
+[codecov-image]: https://codecov.io/github/eggjs/cluster/coverage.svg?branch=master
+[codecov-url]: https://codecov.io/github/eggjs/cluster?branch=master
 [snyk-image]: https://snyk.io/test/npm/egg-cluster/badge.svg?style=flat-square
 [snyk-url]: https://snyk.io/test/npm/egg-cluster
 [download-image]: https://img.shields.io/npm/dm/egg-cluster.svg?style=flat-square
@@ -53,12 +53,13 @@ startCluster(options, () => {
 | workers      | `Number`  | numbers of app workers                   |
 | sticky       | `Boolean` | sticky mode server                       |
 | port         | `Number`  | port                                     |
+| reusePort   | `Boolean` | (Required Node.js >= 22.12.0) allows multiple sockets on the same host to bind to the same port. Incoming connections are distributed by the operating system to listening sockets. This option is available only on some platforms, such as Linux 3.9+, DragonFlyBSD 3.6+, FreeBSD 12.0+, Solaris 11.4, and AIX 7.2.5+. **Default:** `false` |
 | debugPort    | `Number`  | the debug port only listen on http protocol |
 | https        | `Object`  | start a https server, note: `key` / `cert` / `ca` should be full path to file |
 | require      | `Array\|String` | will inject into worker/agent process |
 | pidFile      | `String`  | will save master pid to this file |
 | startMode    | `String`  | default is 'process', use 'worker_threads' to start the app & agent worker by worker_threads |
-| ports        | `Array`   | startup port of each app worker, such as: [7001, 7002, 7003], only effects when the startMode is 'worker_threads' |
+| ports        | `Array`   | startup port of each app worker, such as: [7001, 7002, 7003], only effects when the `startMode` is `'worker_threads'` and `reusePort` is `false` |
 | env        | `String`   | custom env, default is process.env.EGG_SERVER_ENV |
 
 ## Env

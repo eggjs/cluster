@@ -232,6 +232,36 @@ describe('test/app_worker.test.js', () => {
         .expect(200);
     });
 
+    it('should set reusePort=true in config', async () => {
+      app = utils.cluster('apps/app-listen-reusePort');
+      app.debug();
+      await app.ready();
+
+      app.expect('code', 0);
+      // IPv6 first: http://:::17010
+      app.expect('stdout', /egg started on http:\/\/.+?:17010/);
+
+      await request('http://0.0.0.0:17010')
+        .get('/')
+        .expect('done')
+        .expect(200);
+
+      await request('http://127.0.0.1:17010')
+        .get('/')
+        .expect('done')
+        .expect(200);
+
+      await request('http://localhost:17010')
+        .get('/')
+        .expect('done')
+        .expect(200);
+
+      await request('http://127.0.0.1:17010')
+        .get('/port')
+        .expect('17010')
+        .expect(200);
+    });
+
     it('should use hostname in config', async () => {
       const url = address.ip() + ':17010';
 

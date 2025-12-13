@@ -29,7 +29,7 @@ describe('test/master.test.js', () => {
         .end(done);
     });
 
-    it.only('start success with reusePort=true', done => {
+    it('start success with reusePort=true', done => {
       mm.env('local');
       app = utils.cluster('apps/master-worker-started', { reusePort: true });
       app.debug();
@@ -57,7 +57,7 @@ describe('test/master.test.js', () => {
         });
     });
 
-    it.only('start success with reusePort=true in prod env', done => {
+    it('start success with reusePort=true in prod env', done => {
       mm.env('prod');
       app = utils.cluster('apps/mock-production-app', { reusePort: true, workers: 4 })
         .debug();

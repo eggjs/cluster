@@ -232,7 +232,7 @@ describe('test/app_worker.test.js', () => {
         .expect(200);
     });
 
-    it.only('should set reusePort=true in config', async () => {
+    it('should set reusePort=true in config', async () => {
       app = utils.cluster('apps/app-listen-reusePort');
       app.debug();
       await app.ready();

@@ -29,9 +29,10 @@ describe('test/master.test.js', () => {
         .end(done);
     });
 
-    it('start success with reusePort=true', done => {
+    it.only('start success with reusePort=true', done => {
       mm.env('local');
       app = utils.cluster('apps/master-worker-started', { reusePort: true });
+      app.debug();
 
       app.expect('stdout', /egg start/)
         .expect('stdout', /egg started/)

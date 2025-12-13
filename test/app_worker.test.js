@@ -238,7 +238,8 @@ describe('test/app_worker.test.js', () => {
       await app.ready();
 
       app.expect('code', 0);
-      app.expect('stdout', /egg started on http:\/\/127.0.0.1:17010/);
+      // IPv6 first: http://:::17010
+      app.expect('stdout', /egg started on http:\/\/.+?:17010/);
 
       await request('http://0.0.0.0:17010')
         .get('/')

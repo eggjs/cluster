@@ -43,7 +43,24 @@ describe('test/master.test.js', () => {
 
     it('start success in prod env', done => {
       mm.env('prod');
-      app = utils.cluster('apps/mock-production-app').debug(false);
+      app = utils.cluster('apps/mock-production-app')
+        .debug(false);
+
+      app.expect('stdout', /egg start/)
+        .expect('stdout', /egg started/)
+        .expect('code', 0)
+        .end(err => {
+          assert.ifError(err);
+          console.log(app.stdout);
+          console.log(app.stderr);
+          done();
+        });
+    });
+
+    it.only('start success with reusePort=true in prod env', done => {
+      mm.env('prod');
+      app = utils.cluster('apps/mock-production-app', { reusePort: true, workers: 4 })
+        .debug();
 
       app.expect('stdout', /egg start/)
         .expect('stdout', /egg started/)

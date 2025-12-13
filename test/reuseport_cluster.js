@@ -1,7 +1,9 @@
 const cluster = require('node:cluster');
 const http = require('node:http');
-const numCPUs = require('node:os').availableParallelism();
+const os = require('node:os');
 const process = require('node:process');
+
+const numCPUs = typeof os.availableParallelism === 'function' ? os.availableParallelism() : os.cpus().length;
 
 function request(index) {
   http.get('http://localhost:17001/', res => {
@@ -60,7 +62,7 @@ if (cluster.isPrimary) {
   // In this case it is an HTTP server
   http.createServer((req, res) => {
     res.writeHead(200);
-    res.end('hello world\n');
+    res.end(`hello world, worker pid: ${process.pid}, port: ${res.socket.localPort}\n`);
   }).listen({
     port: 17001,
     reusePort: true,

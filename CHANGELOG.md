@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.0 (2025-12-13)
+
+* chore: change default branch to master ([9aac416](https://github.com/eggjs/cluster/commit/9aac416))
+* chore: fix auto release ([7c6ebfa](https://github.com/eggjs/cluster/commit/7c6ebfa))
+* feat: support reusePort on server listen (#115) ([c691907](https://github.com/eggjs/cluster/commit/c691907)), closes [#115](https://github.com/eggjs/cluster/issues/115) [hi#level](https://github.com/hi/issues/level)
+
 ## [2.4.0](https://github.com/eggjs/egg-cluster/compare/v2.3.0...v2.4.0) (2024-12-09)
 
 

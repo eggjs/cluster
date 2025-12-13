@@ -74,7 +74,7 @@ if (cluster.isPrimary) {
     res.end(JSON.stringify({ pid: process.pid }));
   }).listen({
     port: 17001,
-    reusePort: os.platform() === 'linux' ? true : false,
+    reusePort: os.platform() === 'linux',
   });
 
   console.log(`Worker ${process.pid} started`);

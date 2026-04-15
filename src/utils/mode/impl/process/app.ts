@@ -5,6 +5,7 @@ import { graceful as gracefulExit, type Options as gracefulExitOptions } from 'g
 import { BaseAppWorker, BaseAppUtils } from '../../base/app.js';
 import { terminate } from '../../../terminate.js';
 import type { MessageBody } from '../../../messenger.js';
+import { ipcLogger, formatIpcMessage, internalIpcLogEnabled } from '../../../ipc_logger.js';
 
 export class AppProcessWorker extends BaseAppWorker<ClusterProcessWorker> {
   get id() {
@@ -24,6 +25,7 @@ export class AppProcessWorker extends BaseAppWorker<ClusterProcessWorker> {
   }
 
   send(message: MessageBody) {
+    ipcLogger.info(formatIpcMessage(`master->app#${this.workerId}`, message));
     sendmessage(this.instance, message);
   }
 
@@ -43,6 +45,7 @@ export class AppProcessWorker extends BaseAppWorker<ClusterProcessWorker> {
 
   static send(message: MessageBody) {
     message.senderWorkerId = String(process.pid);
+    ipcLogger.info(formatIpcMessage(`app#${process.pid}->master`, message));
     process.send!(message);
   }
 
@@ -78,7 +81,7 @@ export class AppProcessUtils extends BaseAppUtils {
       const appWorker = new AppProcessWorker(worker);
       this.emit('worker_forked', appWorker);
       appWorker.disableRefork = true;
-      worker.on('message', msg => {
+      worker.on('message', (msg, handle) => {
         if (typeof msg === 'string') {
           msg = {
             action: msg,
@@ -86,8 +89,29 @@ export class AppProcessUtils extends BaseAppUtils {
           };
         }
         msg.from = 'app';
+        ipcLogger.info(formatIpcMessage(
+          `master<-app#${worker.process.pid}`,
+          msg,
+          handle,
+        ));
         this.messenger.send(msg);
       });
+
+      // cluster internal NODE_CLUSTER messages (listening / online / queryServer / accepted (fd ack) / close / ...)
+      // Must hook on `worker.process` (ChildProcess) — `cluster.Worker` doesn't forward `internalMessage`.
+      // Note: `internalMessage` is not a documented Node.js event but has been stable across major versions.
+      // Opt-in via EGG_CLUSTER_IPC_LOG because this is very verbose under load.
+      if (internalIpcLogEnabled) {
+        worker.process.on('internalMessage', (msg: { cmd?: string; act?: string; ack?: number }, handle: unknown) => {
+          if (!msg || msg.cmd !== 'NODE_CLUSTER') return;
+          const label = msg.act ? `cluster:${msg.act}` : `cluster:ack#${msg.ack ?? '?'}`;
+          ipcLogger.info(formatIpcMessage(
+            `master<-app#${worker.process.pid}`,
+            { action: label, data: msg },
+            handle,
+          ));
+        });
+      }
       this.log('[master] app_worker#%s:%s start, state: %s, current workers: %j',
         appWorker.id, appWorker.workerId, appWorker.state,
         Object.keys(cluster.workers!));

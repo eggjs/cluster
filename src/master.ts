@@ -23,6 +23,7 @@ import {
 } from './utils/mode/impl/worker_threads/agent.js';
 import { AppThreadWorker, AppThreadUtils as WorkerThreadsAppWorker } from './utils/mode/impl/worker_threads/app.js';
 import { ClusterWorkerExceptionError } from './error/ClusterWorkerExceptionError.js';
+import { ipcLogger, formatIpcMessage } from './utils/ipc_logger.js';
 
 const debug = debuglog('@eggjs/cluster/master');
 
@@ -265,6 +266,11 @@ export class Master extends ReadyEventEmitter {
         connection.destroy();
       } else {
         const worker = this.stickyWorker(connection.remoteAddress) as AppProcessWorker;
+        ipcLogger.info(formatIpcMessage(
+          `master->app#${worker.workerId}`,
+          { action: 'sticky-session:connection' },
+          connection,
+        ));
         worker.instance.send('sticky-session:connection', connection);
       }
     }).listen(this.#realPort, cb);

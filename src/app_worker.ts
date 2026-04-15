@@ -8,6 +8,7 @@ import { importModule } from '@eggjs/utils';
 import { BaseAppWorker } from './utils/mode/base/app.js';
 import { AppThreadWorker } from './utils/mode/impl/worker_threads/app.js';
 import { AppProcessWorker } from './utils/mode/impl/process/app.js';
+import { ipcLogger, formatIpcMessage, internalIpcLogEnabled } from './utils/ipc_logger.js';
 
 const debug = debuglog('@eggjs/cluster/app_worker');
 
@@ -38,6 +39,29 @@ async function main() {
     AppWorker = AppThreadWorker as any;
   } else {
     AppWorker = AppProcessWorker as any;
+    // D. master -> app (recv): log every IPC message delivered to this worker via the cluster channel.
+    // Handle is present when master forwards a `net.Socket` (sticky-session mode).
+    // This listener is read-only; other `process.on('message')` listeners (framework, sticky handler,
+    // etc.) are unaffected.
+    process.on('message', (msg: any, handle: any) => {
+      const body = typeof msg === 'string' ? { action: msg } : msg;
+      ipcLogger.info(formatIpcMessage(`app#${process.pid}<-master`, body, handle));
+    });
+
+    // F. master -> app internal NODE_CLUSTER messages (newconn with fd, disconnect, suicide, ...).
+    // `internalMessage` is an undocumented but stable Node.js event.
+    // Opt-in via EGG_CLUSTER_IPC_LOG because `newconn` fires once per HTTP request.
+    if (internalIpcLogEnabled) {
+      process.on('internalMessage', (msg: { cmd?: string; act?: string; ack?: number }, handle: unknown) => {
+        if (!msg || msg.cmd !== 'NODE_CLUSTER') return;
+        const label = msg.act ? `cluster:${msg.act}` : `cluster:ack#${msg.ack ?? '?'}`;
+        ipcLogger.info(formatIpcMessage(
+          `app#${process.pid}<-master`,
+          { action: label, data: msg },
+          handle,
+        ));
+      });
+    }
   }
 
   const consoleLogger = new ConsoleLogger({

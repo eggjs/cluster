@@ -43,7 +43,8 @@
     "graceful-process": "^2.0.0",
     "sendmessage": "^3.0.1",
     "terminal-link": "^2.1.1",
-    "utility": "^2.2.0"
+    "utility": "^2.2.0",
+    "onelogger": "^1.0.1"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.1",
